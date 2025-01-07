@@ -12,6 +12,9 @@ public class Constantes {
     public static final String CREATING_CREDENTIAL_FAILED_NO_ID_OBTAINED = "Creating credential failed, no ID obtained.";
     public static final String CREATING_PATIENT_FAILED_NO_ROWS_AFFECTED = "Creating patient failed, no rows affected.";
     public static final String CREATING_CREDENTIAL_FAILED_NO_ROWS_AFFECTED = "Creating credential failed, no rows affected.";
+    public static final String SUCCESS = "200";
+    public static final String E_WRONG_PWD = "Wrong password";
+    public static final String E_WRONG_USR = "Wrong username";
 
     public Constantes() {
     }

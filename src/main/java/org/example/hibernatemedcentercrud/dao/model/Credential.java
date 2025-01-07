@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NamedQueries({
         @NamedQuery(name = "Credential.getAll", query = "FROM Credential ")
 })
+
 public class Credential {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

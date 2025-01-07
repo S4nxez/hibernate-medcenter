@@ -6,6 +6,7 @@ import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.PersistenceException;
 import lombok.extern.log4j.Log4j2;
 import org.example.hibernatemedcentercrud.dao.JPAUtil;
+import org.example.hibernatemedcentercrud.dao.model.Credential;
 import org.example.hibernatemedcentercrud.dao.model.Patient;
 import org.example.hibernatemedcentercrud.dao.repositories.PatientRepository;
 import org.springframework.stereotype.Repository;
@@ -59,16 +60,10 @@ public class PatientHibDAO implements PatientRepository {
         Patient patient;
         em = jpautil.getEntityManager();
         try {
-//            patient = em
-//                    .createNamedQuery("hql_get_patient_by_name", Patient.class)
-//                    .setParameter("name", name)
-//                    .getSingleResult();
-
-//If name is duplicated, returns the first occurrence
             patient = em
                     .createNamedQuery("hql_get_patient_by_name", Patient.class)
                     .setParameter("name", name)
-                    .getResultList().get(0);
+                    .getSingleResult();
         } finally {
             if (em != null) em.close();
         }
@@ -76,60 +71,56 @@ public class PatientHibDAO implements PatientRepository {
         return patient;
     }
 
-    public int add(Patient patient) {
-
+    public int add(Patient patient, Credential credential) {
         em = jpautil.getEntityManager();
         EntityTransaction tx = null;
-
         try {
             tx = em.getTransaction();
             tx.begin();
-            var id = patient.getId();
-            em.persist(id);
             em.persist(patient);
+            if (credential != null)
+                em.persist(credential);
             tx.commit();
         } catch (PersistenceException pe) {
-            if (tx != null && tx.isActive()) tx.rollback();
+            if (tx != null && tx.isActive())
+                tx.rollback();
             log.error("Supplier does not exist");
             return 0;
         } catch (Exception e) {
-            if (tx != null && tx.isActive()) tx.rollback();
-            //               if (e.getCause() instanceof TransientPropertyValueException)  //Supplier does not exist
-            //                   System.out.println("Supplier does not exist");
-            //               else
+            if (tx != null && tx.isActive())
+                tx.rollback();
             log.error("Undefined error", e);
             return 0;
         } finally {
             if (em != null) em.close();
         }
-        return  patient.getId();
+        return patient.getId();
     }
 
     @Override
-    public void update(Patient patientDatabase) {
-
+    public void update(Patient patientDatabase, Credential credential) {
+        return ;
     }
 
     @Override
     public void delete(int idDelete, boolean confirm) {
-
-    }
-
-    public void delete(Patient patient) {
         //With cascade.REMOVE
-        em = jpautil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        tx.begin();
-        try {
-            //Reattach the object before removing
-            em.remove(em.merge(patient));
-            tx.commit();
-        } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            e.printStackTrace();
+        if (confirm) {
 
-        } finally {
-            if (em != null) em.close();
+            em = jpautil.getEntityManager();
+            EntityTransaction tx = em.getTransaction();
+            tx.begin();
+            try {
+                //Reattach the object before removing
+                em.remove(em.merge(getByID(idDelete)));
+                tx.commit();
+            } catch (Exception e) {
+                if (tx.isActive()) tx.rollback();
+                e.printStackTrace();
+
+            } finally {
+                if (em != null) em.close();
+            }
         }
     }
 }

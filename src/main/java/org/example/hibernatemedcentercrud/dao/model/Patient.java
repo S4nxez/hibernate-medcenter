@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Data
 @Entity
 @Table(name = "patients")
-@NamedQueries({@NamedQuery(name = "hql_get_patient_by_name", query = "FROM Patient")})
+@NamedQueries({@NamedQuery(name = "hql_get_patient_by_name", query = "FROM Patient WHERE  name = :name")})
 public class  Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,13 +22,11 @@ public class  Patient {
     @Column
     private String phone;
 
-//    private Credential credential;
 
-    public Patient(LocalDate birthDate, Credential credential, int id, String name, String phone) {
+    public Patient(LocalDate birthDate, int id, String name, String phone) {
         this.id = id;
         this.name = name;
         this.birthDate = birthDate;
-  //      this.credential = credential;
         this.phone = phone;
     }
 }
