@@ -7,6 +7,7 @@ import jakarta.persistence.PersistenceException;
 import lombok.extern.log4j.Log4j2;
 import org.example.hibernatemedcentercrud.dao.JPAUtil;
 import org.example.hibernatemedcentercrud.dao.model.Credential;
+import org.example.hibernatemedcentercrud.dao.model.MedRecord;
 import org.example.hibernatemedcentercrud.dao.model.Patient;
 import org.example.hibernatemedcentercrud.dao.repositories.PatientRepository;
 import org.springframework.stereotype.Repository;
@@ -36,16 +37,8 @@ public class PatientHibDAO implements PatientRepository {
         return list;
     }
 
-    public Patient get(Patient patient) {
-        if (patient.getId() != 0) {
-            patient = getByID(patient.getId());
-        } else if (patient.getName() != null) {
-            patient = getByName(patient.getName());
-        }
-        return patient;
-    }
 
-    private Patient getByID(int id) {
+    public Patient getById(int id) {
         Patient patient;
         em = jpautil.getEntityManager();
         try {
@@ -71,56 +64,70 @@ public class PatientHibDAO implements PatientRepository {
         return patient;
     }
 
-    public int add(Patient patient, Credential credential) {
+    public int add(Patient patient) {
         em = jpautil.getEntityManager();
         EntityTransaction tx = null;
         try {
             tx = em.getTransaction();
             tx.begin();
+
+            if (patient.getCredential() != null && patient.getCredential().getId() == null) {
+                em.persist(patient.getCredential());
+            } else {
+                em.merge(patient.getCredential());
+            }
             em.persist(patient);
-            if (credential != null)
-                em.persist(credential);
+
             tx.commit();
+            return patient.getId();
         } catch (PersistenceException pe) {
-            if (tx != null && tx.isActive())
-                tx.rollback();
-            log.error("Supplier does not exist");
+            if (tx != null && tx.isActive()) tx.rollback();
+            log.error("Failed to persist Patient", pe);
             return 0;
         } catch (Exception e) {
-            if (tx != null && tx.isActive())
-                tx.rollback();
+            if (tx != null && tx.isActive()) tx.rollback();
             log.error("Undefined error", e);
             return 0;
         } finally {
             if (em != null) em.close();
         }
-        return patient.getId();
     }
 
     @Override
     public void update(Patient patientDatabase, Credential credential) {
-        return ;
+
     }
 
     @Override
     public void delete(int idDelete, boolean confirm) {
-        //With cascade.REMOVE
         if (confirm) {
-
             em = jpautil.getEntityManager();
             EntityTransaction tx = em.getTransaction();
             tx.begin();
             try {
-                //Reattach the object before removing
-                em.remove(em.merge(getByID(idDelete)));
+                // Buscar el paciente
+                Patient patient = em.find(Patient.class, idDelete);
+
+                if (patient != null) {
+                    // Buscar y eliminar los registros médicos asociados a este paciente
+                    List<MedRecord> medRecords = em.createQuery("FROM MedRecord WHERE patient.id = :patientId", MedRecord.class)
+                            .setParameter("patientId", idDelete)
+                            .getResultList();
+
+                    for (MedRecord medRecord : medRecords) {
+                        em.remove(medRecord);
+                    }
+
+                    em.remove(patient);
+                }
                 tx.commit();
             } catch (Exception e) {
                 if (tx.isActive()) tx.rollback();
-                e.printStackTrace();
-
+                log.error("Failed to delete Patient", e);
             } finally {
                 if (em != null) em.close();
             }
         }
     }
+
 }

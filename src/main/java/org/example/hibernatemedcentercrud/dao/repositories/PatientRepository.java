@@ -11,9 +11,11 @@ import java.util.List;
 public interface PatientRepository {
     List<Patient> getAll();
 
-    int add(Patient patient, Credential credential);
+    int add(Patient patient);
 
     void update(Patient patientDatabase, Credential credential);
 
     void delete(int idDelete, boolean confirm);
+
+    Patient getById(int id);
 }

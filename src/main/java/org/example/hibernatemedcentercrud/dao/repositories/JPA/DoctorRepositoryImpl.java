@@ -31,4 +31,16 @@ public class DoctorRepositoryImpl implements DoctorRepository {
         }
         return list;
     }
+
+    @Override
+    public Doctor getById(int idDoctor) {
+        Doctor doctor;
+        try {
+            em = jpautil.getEntityManager();
+            doctor = em.find(Doctor.class, idDoctor);
+        } finally {
+            if (em != null) em.close();
+        }
+        return doctor;
+    }
 }

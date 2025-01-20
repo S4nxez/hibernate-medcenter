@@ -23,4 +23,8 @@ public class DoctorService {
                 .toList();
         return doctorUIs;
     }
+
+    public Doctor getDoctorById(int idDoctor) {
+        return doctorRepository.getById(idDoctor);
+    }
 }

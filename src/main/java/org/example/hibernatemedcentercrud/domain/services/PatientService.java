@@ -29,7 +29,7 @@ public class PatientService {
 
         patient.forEach(patient1 ->
                 patientsUI.add(new PatientUI(patient1.getId(), patient1.getName(), patient1.getBirthDate(), patient1.getPhone(), payments.stream()
-                        .filter(payment -> payment.getPatient_id() == patient1.getId())
+                        .filter(payment -> payment.getPatient()== patient1)
                         .map(Payment::getAmount)
                         .reduce(0f, Float::sum)
                         .intValue(), null, null)
@@ -38,26 +38,31 @@ public class PatientService {
     }
 
     public int add(PatientUI patientui) {
-        Patient patient = new Patient(patientui.getBirthDate(),
-                patientui.getId(), patientui.getName(), patientui.getPhone());
+        Credential credential = new Credential(patientui.getUserName(), patientui.getPassword());
+        Patient patient = new Patient(patientui.getName(), patientui.getBirthDate(), patientui.getPhone(), null);
 
-        Credential credential = new Credential(0, patientui.getUserName(),
-                patientui.getPassword(), 0, patientui.getId());
+        credential.setPatient(patient);
+        patient.setCredential(credential);
 
-        return patientRepository.add(patient,credential);
+        return patientRepository.add(patient);
     }
 
+
     public void update(PatientUI patientui) {
-        Patient patient = new Patient(patientui.getBirthDate(),
-
-                patientui.getId(), patientui.getName(), patientui.getPhone());
-
         Credential credential =new Credential(patientui.getUserName(),
                 patientui.getPassword(), patientui.getId());
+        Patient patient = new Patient(patientui.getName(),
+                patientui.getBirthDate(), patientui.getPhone(),
+                credential);
+
         patientRepository.update(patient, credential);
     }
 
     public void delete(int idDelete, boolean confirm) {
         patientRepository.delete(idDelete, confirm);
+    }
+
+    public Patient getPatientById(int idPatient) {
+        return patientRepository.getById(idPatient);
     }
 }
